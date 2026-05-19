@@ -23,6 +23,20 @@ pub async fn check_for_updates() -> Result<UpdateInfo, String> {
         .map_err(|e| e.to_string())?;
 
     let resp = client.get(&url).send().await.map_err(|e| e.to_string())?;
+
+    // No releases yet → treat as "up to date"
+    if resp.status() == reqwest::StatusCode::NOT_FOUND {
+        let current = env!("CARGO_PKG_VERSION").to_string();
+        return Ok(UpdateInfo {
+            has_update: false,
+            current: current.clone(),
+            latest: current,
+            release_url: format!("https://github.com/{REPO}/releases"),
+            notes: String::new(),
+            published_at: String::new(),
+        });
+    }
+
     if !resp.status().is_success() {
         return Err(format!("HTTP {}", resp.status()));
     }
