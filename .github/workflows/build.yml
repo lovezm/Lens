@@ -17,6 +17,10 @@ on:
         type: boolean
         default: false
 
+# tauri-action needs write access to create the release + push the tag
+permissions:
+  contents: write
+
 jobs:
   prepare-release:
     name: Prepare release notes
