@@ -1,7 +1,7 @@
 import type { ReactElement } from "react";
 
 interface IconProps {
-  name: "general" | "shortcut" | "permissions" | "about";
+  name: "general" | "shortcut" | "clipboard" | "permissions" | "about";
   size?: number;
   color?: string;
 }
@@ -17,6 +17,12 @@ const PATHS: Record<IconProps["name"], ReactElement> = {
     <>
       <rect x="3" y="6" width="18" height="12" rx="2" />
       <path d="M7 10h.01M11 10h.01M15 10h.01M7 14h10" />
+    </>
+  ),
+  clipboard: (
+    <>
+      <rect x="6" y="4" width="12" height="16" rx="2" />
+      <path d="M9 4h6v3H9z" />
     </>
   ),
   permissions: (

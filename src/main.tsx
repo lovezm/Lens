@@ -4,9 +4,16 @@ import "./i18n";
 import "./index.css";
 import App from "./App";
 import SearchPage from "./pages/SearchPage";
+import ClipboardPage from "./pages/ClipboardPage";
 
-const isSearch = window.location.hash === "#search";
+const hash = window.location.hash;
+
+function chooseRoot() {
+  if (hash === "#search") return <SearchPage />;
+  if (hash === "#clipboard") return <ClipboardPage />;
+  return <App />;
+}
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>{isSearch ? <SearchPage /> : <App />}</React.StrictMode>,
+  <React.StrictMode>{chooseRoot()}</React.StrictMode>,
 );

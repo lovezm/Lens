@@ -1,5 +1,3 @@
-use base64::Engine;
-
 #[tauri::command]
 pub async fn get_file_icon(path: String) -> Option<String> {
     tokio::task::spawn_blocking(move || icon_to_base64(&path))
@@ -10,6 +8,7 @@ pub async fn get_file_icon(path: String) -> Option<String> {
 
 #[cfg(target_os = "macos")]
 fn icon_to_base64(path: &str) -> Option<String> {
+    use base64::Engine;
     use objc2::rc::autoreleasepool;
     use objc2_app_kit::{NSBitmapImageFileType, NSBitmapImageRep, NSWorkspace};
     use objc2_foundation::{NSDictionary, NSString};

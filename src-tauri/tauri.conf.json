@@ -40,6 +40,22 @@
         "visible": false,
         "shadow": false,
         "focus": false
+      },
+      {
+        "label": "clipboard",
+        "url": "index.html#clipboard",
+        "title": "Lens Clipboard",
+        "width": 880,
+        "height": 520,
+        "resizable": false,
+        "center": true,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "visible": false,
+        "shadow": false,
+        "focus": false
       }
     ],
     "trayIcon": {
@@ -49,7 +65,11 @@
       "tooltip": "Lens"
     },
     "security": {
-      "csp": null
+      "csp": null,
+      "assetProtocol": {
+        "enable": true,
+        "scope": ["$APPDATA/**", "$APPDATA/clipboard_images/**"]
+      }
     }
   },
   "bundle": {

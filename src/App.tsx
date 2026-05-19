@@ -1,19 +1,27 @@
-import { useState } from "react";
-import i18n from "./i18n";
+import { useEffect, useState } from "react";
+import i18n, { setLanguage, Lang } from "./i18n";
 import Sidebar from "./components/Sidebar";
 import SettingsPageHost, { SettingsPage } from "./pages/settings";
 import { useShortcut } from "./hooks/useShortcut";
-
-type Lang = "zh" | "en";
+import { useClipboardSettings } from "./hooks/useClipboardSettings";
 
 export default function App() {
   const [activePage, setActivePage] = useState<SettingsPage>("general");
-  const [lang, setLang] = useState<Lang>("zh");
-  const shortcut = useShortcut();
+  const [lang, setLang] = useState<Lang>((i18n.language as Lang) ?? "zh");
+  const searchShortcut = useShortcut("search");
+  const clipboardShortcut = useShortcut("clipboard");
+  const clipboard = useClipboardSettings();
+
+  // Reflect any cross-window language change in local state
+  useEffect(() => {
+    const handler = (l: string) => setLang(l as Lang);
+    i18n.on("languageChanged", handler);
+    return () => i18n.off("languageChanged", handler);
+  }, []);
 
   const handleLangChange = (l: Lang) => {
     setLang(l);
-    i18n.changeLanguage(l);
+    setLanguage(l);
   };
 
   return (
@@ -34,8 +42,14 @@ export default function App() {
         activePage={activePage}
         lang={lang}
         onLangChange={handleLangChange}
-        accelerator={shortcut.accelerator}
-        onAcceleratorChange={shortcut.setAccelerator}
+        searchAccelerator={searchShortcut.accelerator}
+        onSearchAcceleratorChange={searchShortcut.setAccelerator}
+        clipboardAccelerator={clipboardShortcut.accelerator}
+        onClipboardAcceleratorChange={clipboardShortcut.setAccelerator}
+        retention={clipboard.retention}
+        onRetentionChange={clipboard.setRetention}
+        recordFiles={clipboard.recordFiles}
+        onRecordFilesChange={clipboard.setRecordFiles}
       />
     </div>
   );

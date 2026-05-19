@@ -37,10 +37,77 @@ const MODIFIER_KEYS = new Set([
   "Command",
   "Option",
   "OS",
+  "AltGraph",
 ]);
+
+// Map a KeyboardEvent.code to a Tauri-compatible token.
+// We use `code` (physical key) instead of `key` (logical character) so that
+// ⌥C on macOS — which the system rewrites to "ç" — still parses as "C".
+function codeToToken(code: string, key: string): string | null {
+  // Letter keys: "KeyA" → "A"
+  if (/^Key[A-Z]$/.test(code)) return code.slice(3);
+  // Number row: "Digit5" → "5"
+  if (/^Digit\d$/.test(code)) return code.slice(5);
+  // Numpad digits
+  if (/^Numpad\d$/.test(code)) return code;
+  // Function keys
+  if (/^F\d{1,2}$/.test(code)) return code;
+  // Arrows
+  if (code.startsWith("Arrow")) return code;
+
+  // Named keys
+  switch (code) {
+    case "Space":
+      return "Space";
+    case "Enter":
+    case "NumpadEnter":
+      return "Enter";
+    case "Tab":
+      return "Tab";
+    case "Escape":
+      return "Escape";
+    case "Backspace":
+      return "Backspace";
+    case "Delete":
+      return "Delete";
+    case "Home":
+    case "End":
+    case "PageUp":
+    case "PageDown":
+      return code;
+    case "Minus":
+      return "-";
+    case "Equal":
+      return "=";
+    case "BracketLeft":
+      return "[";
+    case "BracketRight":
+      return "]";
+    case "Backslash":
+      return "\\";
+    case "Semicolon":
+      return ";";
+    case "Quote":
+      return "'";
+    case "Comma":
+      return ",";
+    case "Period":
+      return ".";
+    case "Slash":
+      return "/";
+    case "Backquote":
+      return "`";
+  }
+
+  // Fallback to key value for anything we didn't recognise
+  if (key.length === 1) return key.toUpperCase();
+  return null;
+}
 
 // Convert a keyboard event to a Tauri accelerator string. Requires at least one modifier.
 export function eventToAccelerator(e: KeyboardEvent): string | null {
+  if (MODIFIER_KEYS.has(e.key)) return null;
+
   const parts: string[] = [];
   if (e.metaKey) parts.push("CommandOrControl");
   if (e.ctrlKey && !e.metaKey) parts.push("Control");
@@ -49,15 +116,8 @@ export function eventToAccelerator(e: KeyboardEvent): string | null {
 
   if (parts.length === 0) return null;
 
-  const key = e.key;
-  if (MODIFIER_KEYS.has(key)) return null;
-
-  let token: string;
-  if (key === " ") token = "Space";
-  else if (key.length === 1) token = key.toUpperCase();
-  else if (key.startsWith("Arrow")) token = key;
-  else if (/^F\d{1,2}$/.test(key)) token = key;
-  else token = key.charAt(0).toUpperCase() + key.slice(1);
+  const token = codeToToken(e.code, e.key);
+  if (!token) return null;
 
   parts.push(token);
   return parts.join("+");

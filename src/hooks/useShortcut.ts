@@ -4,39 +4,57 @@ import { LazyStore } from "@tauri-apps/plugin-store";
 import { DEFAULT_ACCELERATOR } from "../utils/accelerator";
 
 const STORE_FILE = "settings.json";
-const KEY = "summon-shortcut";
+const SEARCH_KEY = "summon-shortcut";
+const CLIPBOARD_KEY = "clipboard-shortcut";
 
 const store = new LazyStore(STORE_FILE);
 
-export function useShortcut() {
-  const [accelerator, setAcceleratorState] = useState<string>(DEFAULT_ACCELERATOR);
+type Kind = "search" | "clipboard";
+
+function keyFor(kind: Kind) {
+  return kind === "search" ? SEARCH_KEY : CLIPBOARD_KEY;
+}
+
+function defaultFor(kind: Kind) {
+  // Search has a default, clipboard requires the user to opt in
+  return kind === "search" ? DEFAULT_ACCELERATOR : "";
+}
+
+export function useShortcut(kind: Kind = "search") {
+  const [accelerator, setAcceleratorState] = useState<string>(defaultFor(kind));
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
-        const saved = await store.get<string>(KEY);
-        const initial = saved || DEFAULT_ACCELERATOR;
+        const saved = (await store.get<string>(keyFor(kind))) ?? null;
+        const initial = saved !== null ? saved : defaultFor(kind);
         setAcceleratorState(initial);
-        await invoke("register_search_shortcut", { accelerator: initial });
-      } catch (_) {
-        // ignore
+        await invoke("register_shortcut", {
+          kind,
+          accelerator: initial || null,
+        });
+      } catch (e) {
+        console.error("shortcut init failed", e);
       } finally {
         setLoaded(true);
       }
     })();
-  }, []);
+  }, [kind]);
 
-  const setAccelerator = useCallback(async (acc: string) => {
-    try {
-      await invoke("register_search_shortcut", { accelerator: acc });
-      setAcceleratorState(acc);
-      await store.set(KEY, acc);
-      await store.save();
-    } catch (e) {
-      console.error("Failed to register shortcut:", e);
-    }
-  }, []);
+  const setAccelerator = useCallback(
+    async (acc: string) => {
+      try {
+        await invoke("register_shortcut", { kind, accelerator: acc || null });
+        setAcceleratorState(acc);
+        await store.set(keyFor(kind), acc);
+        await store.save();
+      } catch (e) {
+        console.error("shortcut update failed", e);
+      }
+    },
+    [kind]
+  );
 
   return { accelerator, setAccelerator, loaded };
 }
