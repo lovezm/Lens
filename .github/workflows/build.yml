@@ -38,8 +38,9 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
+          NOTES_FILE=$(mktemp)
           if [ -n "$USER_BODY" ]; then
-            NOTES="$USER_BODY"
+            printf '%s\n' "$USER_BODY" > "$NOTES_FILE"
           else
             LAST_TAG=$(git tag --sort=-v:refname | head -1 || true)
             if [ -z "$LAST_TAG" ]; then
@@ -52,15 +53,13 @@ jobs:
             if [ -z "$CHANGES" ]; then
               CHANGES="_No commits since the previous release._"
             fi
-            NOTES="## What's Changed
-
-$CHANGES
-
-**Full Changelog**: $COMPARE"
+            printf "## What's Changed\n\n" > "$NOTES_FILE"
+            printf '%s\n\n' "$CHANGES" >> "$NOTES_FILE"
+            printf '**Full Changelog**: %s\n' "$COMPARE" >> "$NOTES_FILE"
           fi
           {
             echo 'notes<<RELEASE_NOTES_EOF'
-            echo "$NOTES"
+            cat "$NOTES_FILE"
             echo 'RELEASE_NOTES_EOF'
           } >> "$GITHUB_OUTPUT"
 
