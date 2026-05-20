@@ -1,7 +1,9 @@
 use serde::Serialize;
 use std::process::Command;
 
+#[cfg(target_os = "macos")]
 const MAX_RAW_RESULTS: usize = 300;
+#[cfg(target_os = "macos")]
 const MAX_FINAL_RESULTS: usize = 12;
 const MIN_QUERY_LEN: usize = 2;
 

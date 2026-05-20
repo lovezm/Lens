@@ -8,7 +8,6 @@ pub const SEARCH_INPUT_ONLY_HEIGHT: u32 = 64;
 const SEARCH_TOP_RATIO: f64 = 0.22;
 
 pub const CLIPBOARD_WIDTH: u32 = 880;
-pub const CLIPBOARD_HEIGHT: u32 = 520;
 const CLIPBOARD_TOP_RATIO: f64 = 0.18;
 
 fn position_search_window<R: Runtime>(win: &WebviewWindow<R>) {

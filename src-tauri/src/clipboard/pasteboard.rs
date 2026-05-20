@@ -1,4 +1,7 @@
-use crate::clipboard::types::{CapturedClip, ClipKind};
+use crate::clipboard::types::CapturedClip;
+#[cfg(target_os = "macos")]
+use crate::clipboard::types::ClipKind;
+#[cfg(target_os = "macos")]
 use sha2::{Digest, Sha256};
 
 #[cfg(target_os = "macos")]
@@ -12,7 +15,7 @@ mod mac {
     use objc2_foundation::{NSData, NSDictionary, NSString};
 
     pub fn change_count() -> i64 {
-        autoreleasepool(|_| unsafe {
+        autoreleasepool(|_| {
             let pb = NSPasteboard::generalPasteboard();
             pb.changeCount() as i64
         })
@@ -94,7 +97,7 @@ mod mac {
     }
 
     pub fn frontmost_app() -> (Option<String>, Option<String>) {
-        autoreleasepool(|_| unsafe {
+        autoreleasepool(|_| {
             let workspace = NSWorkspace::sharedWorkspace();
             let Some(front) = workspace.frontmostApplication() else {
                 return (None, None);
@@ -200,10 +203,12 @@ mod mac {
     }
 }
 
+#[cfg(target_os = "macos")]
 fn hash_str(s: &str) -> String {
     hash_bytes(s.as_bytes())
 }
 
+#[cfg(target_os = "macos")]
 fn hash_bytes(bytes: &[u8]) -> String {
     let mut h = Sha256::new();
     h.update(bytes);
@@ -241,9 +246,4 @@ pub fn write_image_bytes(_bytes: &[u8]) -> i64 {
 #[cfg(not(target_os = "macos"))]
 pub fn write_file_url(_path: &str) -> i64 {
     0
-}
-
-#[cfg(not(target_os = "macos"))]
-pub fn frontmost_app() -> (Option<String>, Option<String>) {
-    (None, None)
 }
